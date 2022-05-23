@@ -1,0 +1,431 @@
+from sqlalchemy import create_engine
+import pandas as pd
+import pymysql
+sqlEngine = create_engine('mysql+pymysql://root:@127.0.0.1/dd', pool_recycle=3600)
+dbConnection = sqlEngine.connect()
+df = pd.read_sql("select * from dd.source_alloy", dbConnection);
+daily_alloy = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Alloy_Stocklist.csv");
+daily_alloy.drop_duplicates(subset =["Code"],
+                     keep = False, inplace = True);
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+df.columns = ['Code', 'Summary2', 'Description2', 'Category2', 'Vendor2', 'DLR2', 'SRP2',
+       'EOL2', 'Stock2', 'Warranty2', 'Vkg2', 'Weight2', 'Length2', 'Width2',
+       'Height2', 'Image2', 'Webpage2'];
+	   
+alloy = pd.merge(df,daily_alloy,on='Code',how='outer',indicator=True) ; 
+alloy.drop(['Summary2', 'Description2', 'Category2', 'Vendor2', 'DLR2', 'SRP2',
+       'EOL2', 'Stock2', 'Warranty2', 'Vkg2', 'Weight2', 'Length2', 'Width2',
+       'Height2', 'Image2', 'Webpage2'], axis = 1, inplace = True);
+newalloy.drop_duplicates(subset ="Code",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (alloy['_merge'] == 'right_only');
+#Creating DF for import to database
+newalloy = alloy[filt1]
+#Insert into table
+newalloy.to_sql('source_alloy', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#ALLOYS - Reading from DB
+df = pd.read_sql("select * from dd.source_alloys", dbConnection);
+#Reading from CSV file for Update
+daily_alloys = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\pricelist.csv");
+daily_alloys.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['PartNumber', 'Name2', 'ManufacPrefix2', 'Manufacturer2', 'Category2',
+       'CategoryName2', 'Group2', 'Unit2', 'PriceCostEx2', 'PriceRetailEx2',
+       'TaxType2', 'TaxRate2', 'Quantity2', 'SupplierPartNumber2', 'Description2',
+       'HTMLDescription2', 'EAN2', 'Weight2', 'Height2', 'Width2', 'Depth2',
+       'FeaturesBenefits2', 'MarketingComments2', 'GeneralComments2',
+       'ProductSpecificURL2', 'Warranty2', 'image_thumbnail2', 'PDF_Available2',
+       'StockRecordUpdated2', 'ETADate2', 'ETAStatus2', 'Qty_ADL2', 'Qty_BNE2',
+       'Qty_MEL2', 'Qty_SYD2'];
+#Merging two files	   
+alloys = pd.merge(df,daily_alloys,on='PartNumber',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+alloys.drop(['Name2', 'ManufacPrefix2', 'Manufacturer2', 'Category2',
+       'CategoryName2', 'Group2', 'Unit2', 'PriceCostEx2', 'PriceRetailEx2',
+       'TaxType2', 'TaxRate2', 'Quantity2', 'SupplierPartNumber2', 'Description2',
+       'HTMLDescription2', 'EAN2', 'Weight2', 'Height2', 'Width2', 'Depth2',
+       'FeaturesBenefits2', 'MarketingComments2', 'GeneralComments2',
+       'ProductSpecificURL2', 'Warranty2', 'image_thumbnail2', 'PDF_Available2',
+       'StockRecordUpdated2', 'ETADate2', 'ETAStatus2', 'Qty_ADL2', 'Qty_BNE2',
+       'Qty_MEL2', 'Qty_SYD2'], axis = 1, inplace = True);
+newalloys.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (alloys['_merge'] == 'right_only');
+#Creating DF for import to database
+newalloys = alloys[filt1]
+#Insert into table
+newalloys.to_sql('source_alloys', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#BLUECHIP - Reading from DB
+df = pd.read_sql("select * from dd.source_bluechip", dbConnection);
+#Reading from CSV file for Update
+daily_bluechip = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Bluechip.csv");
+daily_bluechip.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['PartNumber', 'Description2', 'Details2', 'Unit2', 'Cost_EX_GST2',
+       'GST_Rate2', 'Qty2', 'Introduced2', 'Clearance2', 'Manufacturer2',
+       'Category2', 'Group2', 'SupplierPartNumber2', 'NSW_Qty2', 'VIC_Qty2',
+       'QLD_Qty2', 'SA_Qty2', 'WA_Qty2', 'Weight2', 'Volume2', 'Product_Image2',
+       'RRP_Ex_GST2'];
+#Merging two files	   
+bluechip = pd.merge(df,daily_bluechip,on='PartNumber',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+bluechip.drop(['Description2', 'Details2', 'Unit2', 'Cost_EX_GST2',
+       'GST_Rate2', 'Qty2', 'Introduced2', 'Clearance2', 'Manufacturer2',
+       'Category2', 'Group2', 'SupplierPartNumber2', 'NSW_Qty2', 'VIC_Qty2',
+       'QLD_Qty2', 'SA_Qty2', 'WA_Qty2', 'Weight2', 'Volume2', 'Product_Image2',
+       'RRP_Ex_GST2'], axis = 1, inplace = True);
+bluechip.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (bluechip['_merge'] == 'right_only');
+#Creating DF for import to database
+newbluechip = bluechip[filt1]
+#Insert into table
+newbluechip.to_sql('source_bluechip', con = sqlEngine, if_exists = 'append', chunksize = 1000)
+
+
+#DYNAMIC - Reading from DB
+df = pd.read_sql("select * from dd.source_dynamic", dbConnection);
+#Reading from TXT file for Update and putting header on it
+daily_dynamic = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\DEVICE2.txt", delimiter = ',');
+daily_dynamic.columns = ['Dynamic Supplies Code', 'Description', 'Dealer Price Ex GST',
+	'Manufacturer Name', 'Product Category description', 'Product Weight (kg)','Manufacturer OEM Code',
+	'Printer Compatibility', 'Cartridge Yield','Cartridge Type','m3 (L x W x H) - Not cubic weight',
+	'Regionalisation Code', 'Length (m)', 'Width (m)', 'Height (m)', 'SOH Brisbane', 'SOH Melbourne','SOH Perth',
+	'SOH Adelaide','SOH Sydney','GTIN Barcode','RRP Inc GST'];
+daily_dynamic.drop_duplicates(subset ="Dynamic Supplies Code",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['Dynamic Supplies Code', 'Description2', 'Dealer Price Ex GST2',
+	'Manufacturer Name2', 'Product Category description2', 'Product Weight (kg)2','Manufacturer OEM Code2',
+	'Printer Compatibility2', 'Cartridge Yield2','Cartridge Type2','m3 (L x W x H) - Not cubic weight2',
+	'Regionalisation Code2', 'Length (m)2', 'Width (m)2', 'Height (m)2', 'SOH Brisbane2', 'SOH Melbourne2','SOH Perth2',
+	'SOH Adelaide2','SOH Sydney2','GTIN Barcode2','RRP Inc GST2'];
+#Merging two files	   
+dynamic = pd.merge(df,daily_dynamic,on='Dynamic Supplies Code',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+dynamic.drop(['Description2', 'Dealer Price Ex GST2',
+	'Manufacturer Name2', 'Product Category description2', 'Product Weight (kg)2','Manufacturer OEM Code2',
+	'Printer Compatibility2', 'Cartridge Yield2','Cartridge Type2','m3 (L x W x H) - Not cubic weight2',
+	'Regionalisation Code2', 'Length (m)2', 'Width (m)2', 'Height (m)2', 'SOH Brisbane2', 'SOH Melbourne2','SOH Perth2',
+	'SOH Adelaide2','SOH Sydney2','GTIN Barcode2','RRP Inc GST2'], axis = 1, inplace = True);
+dynamic.drop_duplicates(subset ="Dynamic Supplies Code",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (dynamic['_merge'] == 'right_only');
+#Creating DF for import to database
+newdynamic = dynamic[filt1]
+#Insert into table
+newdynamic.to_sql('source_dynamic', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DICKER - Reading from DB
+df = pd.read_sql("select * from dd.source_dicker", dbConnection);
+#Reading from CSV file for Update
+daily_dicker = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\DickerDataDataFeedCSV.csv");
+daily_dicker.drop_duplicates(subset ="StockCode",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['StockCode', 'Vendor2', 'VendorStockCode2', 'StockDescription2',
+       'PrimaryCategory2', 'SecondaryCategory2', 'TertiaryCategory2', 'RRPEx2',
+       'DealerEx2', 'StockAvailable2', 'ETA2', 'Status2', 'Type2', 'BundledItem1 2',
+       'BundledItem2 2', 'BundledItem3 2', 'BundledItem4 2', 'BundledItem5 2'];
+#Merging two files	   
+dicker = pd.merge(df,daily_dicker,on='StockCode',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+dicker.drop(['Vendor2', 'VendorStockCode2', 'StockDescription2',
+       'PrimaryCategory2', 'SecondaryCategory2', 'TertiaryCategory2', 'RRPEx2',
+       'DealerEx2', 'StockAvailable2', 'ETA2', 'Status2', 'Type2', 'BundledItem1 2',
+       'BundledItem2 2', 'BundledItem3 2', 'BundledItem4 2', 'BundledItem5 2'], axis = 1, inplace = True);
+dicker.drop_duplicates(subset ="StockCode",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (dicker['_merge'] == 'right_only');
+#Creating DF for import to database
+newdicker = dicker[filt1]
+#Insert into table
+newdicker.to_sql('source_dicker', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#LEADER - Reading from DB
+df = pd.read_sql("select * from dd.source_leader", dbConnection);
+#Reading from CSV file for Update
+daily_leader = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Leader.csv");
+daily_leader.drop_duplicates(subset ="STOCK CODE",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['STOCK CODE', 'CATEGORY CODE2', 'CATEGORY NAME2', 'SUBCATEGORY NAME2',
+       'SHORT DESCRIPTION2', 'BAR CODE2', 'DBP2', 'RRP2', 'IMAGE2', 'MANUFACTURER2',
+       'MANUFACTURER SKU2', 'WEIGHT2', 'LENGTH2', 'WIDTH2', 'HEIGHT2', 'WARRANTY2',
+       'AT2', 'AA2', 'AQ2', 'AN2', 'AV2', 'AW2', 'ETAA2', 'ETAQ2', 'ETAN2', 'ETAV2',
+       'ETAW2', 'ALTERNATIVE REPLACEMENTS2', 'OPTIONAL ACCESSORIES2'];
+#Merging two files	   
+leader = pd.merge(df,daily_leader,on='STOCK CODE',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+leader.drop(['CATEGORY CODE2', 'CATEGORY NAME2', 'SUBCATEGORY NAME2',
+       'SHORT DESCRIPTION2', 'BAR CODE2', 'DBP2', 'RRP2', 'IMAGE2', 'MANUFACTURER2',
+       'MANUFACTURER SKU2', 'WEIGHT2', 'LENGTH2', 'WIDTH2', 'HEIGHT2', 'WARRANTY2',
+       'AT2', 'AA2', 'AQ2', 'AN2', 'AV2', 'AW2', 'ETAA2', 'ETAQ2', 'ETAN2', 'ETAV2',
+       'ETAW2', 'ALTERNATIVE REPLACEMENTS2', 'OPTIONAL ACCESSORIES2'], axis = 1, inplace = True);
+leader.drop_duplicates(subset ="STOCK CODE",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (leader['_merge'] == 'right_only');
+#Creating DF for import to database
+newleader = leader[filt1]
+#Insert into table
+newleader.to_sql('source_leader', con = sqlEngine, if_exists = 'append', chunksize = 1000)
+
+#MMT - Reading from DB
+df = pd.read_sql("select * from dd.source_mmt", dbConnection);
+#Reading from CSV file for Update
+daily_mmt = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\MMT.csv", encoding= 'unicode_escape');
+daily_mmt.drop_duplicates(subset ="MMT Code",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['MMT Code', 'Man.Code/SKU2', 'Manufacturer2', 'Category2', 'Description2',
+       'RRP Inc.2', 'Your Buy Ex. GST2', 'Available (Qty)2',
+       'Parent Category Name2', 'Category Name2', 'Extended Description2'];
+#Merging two files	   
+mmt = pd.merge(df,daily_mmt,on='MMT Code',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+mmt.drop(['Man.Code/SKU2', 'Manufacturer2', 'Category2', 'Description2',
+       'RRP Inc.2', 'Your Buy Ex. GST2', 'Available (Qty)2',
+       'Parent Category Name2', 'Category Name2', 'Extended Description2'], axis = 1, inplace = True);
+mmt.drop_duplicates(subset ="MMT Code",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (mmt['_merge'] == 'right_only');
+#Creating DF for import to database
+newmmt = mmt[filt1]
+#Insert into table
+newmmt.to_sql('source_mmt', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#INGRAM - reading source from Database 
+df = pd.read_sql("select * from dd.source_ingram", dbConnection);
+#Reading from daily or update file
+daily_ingram = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\233866.TXT", delimiter = ',');
+daily_ingram.drop_duplicates(subset ="Ingram Part Number",
+                     keep = False, inplace = True);
+#Removing unnecessary columns from update file(IF available)
+daily_ingram.drop(['Customer Part Number','Plant', 'Vendor Number','Unit', 'Category ID','Availability Flag',
+            'Backlog Information','License Flag', 'BOM Flag', 'Warranty Flag', 'Bulk Freight Flag',
+            'Category','Material Creation Reason code', 'Media Code', 'Material Language Code','Superseded Material',
+           'Manufacturer Vendor Number', 'Sub-Category', 'Product Family',
+       'Purchasing Vendor', 'Material Change Code', 'Action code',
+       'Price Status', 'Vendor Subrange', 'Case Qty',
+       'Pallet Qty', 'Direct Order identifier', 'Material Status', 'Fulfilment type',
+       'Music Copyright Fees', 'Recycling Fees', 'Document Copyright Fees',
+       'Battery Fees', 'Tax Percent', 'Discount in Percent', 'Customer Reservation Number',
+       'Customer Reservation Qty', 'Agreement ID', 'Level ID', 'Period',
+       'Points', 'Company code', 'Company code Currency',
+       'Customer Currency Code', 'Customer Price Change Flag',
+       'Substitute Flag', 'Availability (Local Stock)',
+       'Availability (Central Stock)', 'Creation Reason Type',
+       'Creation Reason Value', 'Plant 01 Available Quantity',
+       'Plant 02 Available Quantity', 'VAT Rate', 'Product Group',
+       'MRP Controller', 'Shipping Country', 'Local Stock Backlog Quantity',
+       'Local Stock Backlog ETA', 'Central Stock Backlog Quantity',
+       'Central Stock Backlog ETA'], axis = 1, inplace = True);
+#Removing unnecessary columns from Database 
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming source file merging function
+df.columns = ['Ingram Part Number', 'Ingram Part Description2', 'Vendor Part Number2',
+       'EANUPC Code2', 'Vendor Name2', 'Size2', 'Weight2', 'Volume2',
+       'Customer Price2', 'Retail Price2', 'Available Quantity2', 'Backlog ETA2',
+       'Material Long Description2', 'Length2', 'Width2', 'Height2',
+       'Dimension Unit2', 'Weight Unit2', 'Volume Unit2', 'Substitute Material2',
+       'New Material Flag2', 'Discontinued / Obsoleted date2', 'Release Date2',
+       'Customer Price with Tax2', 'Retail Price with Tax2',
+       'Customer Price Including Fees2', 'Total Fees2', 'Category Description2',
+       'Sub-Category Description2', 'Category ID Description2'];
+#Merging applied
+Ingram = pd.merge(df,daily_ingram,on='Ingram Part Number',how='outer',indicator=True) ; 
+#Removing Left side header
+Ingram.drop(['Ingram Part Description2', 'Vendor Part Number2',
+       'EANUPC Code2', 'Vendor Name2', 'Size2', 'Weight2', 'Volume2',
+       'Customer Price2', 'Retail Price2', 'Available Quantity2', 'Backlog ETA2',
+       'Material Long Description2', 'Length2', 'Width2', 'Height2',
+       'Dimension Unit2', 'Weight Unit2', 'Volume Unit2', 'Substitute Material2',
+       'New Material Flag2', 'Discontinued / Obsoleted date2', 'Release Date2',
+       'Customer Price with Tax2', 'Retail Price with Tax2',
+       'Customer Price Including Fees2', 'Total Fees2', 'Category Description2',
+       'Sub-Category Description2', 'Category ID Description2'], axis = 1, inplace = True);
+ingram.drop_duplicates(subset ="Ingram Part Number",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (Ingram['_merge'] == 'right_only');
+#Creating DF for import to database
+newingram = Ingram[filt1]
+#Insert into table
+newingram.to_sql('source_ingram', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SEKTOR - 
+df = pd.read_sql("select * from dd.source_sektor", dbConnection);
+daily_sektor = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\PRODFEED_STANDARD_14833.csv");
+daily_sektor.drop_duplicates(subset ="Stockcode",
+                     keep = False, inplace = True);
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+
+df.columns = [ 'Stockcode','Vendor Code2', 'Description2', 'Buy2', 'Stock Level2',
+       'Brand2', 'Core Product2', 'Minimum Order Qty2'];
+sektor = pd.merge(df,daily_sektor,on='Stockcode',how='outer',indicator=True) ; 
+sektor.drop(['Vendor Code2', 'Description2', 'Buy2', 'Stock Level2',
+       'Brand2', 'Core Product2', 'Minimum Order Qty2'], axis = 1, inplace = True);
+sektor.drop_duplicates(subset ="Stockcode",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (sektor['_merge'] == 'right_only');
+#Creating DF for import to database
+newsektor = sektor[filt1]
+#Insert into table
+newsektor.to_sql('source_sektor', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SELTEC - 
+df = pd.read_sql("select * from dd.source_seltec", dbConnection);
+daily_seltec = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Seltec Data Feed.csv");
+daily_seltec.drop_duplicates(subset ="Product Code",
+                     keep = False, inplace = True);
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+
+df.columns = ['Product Code', 'Product Title2', 'Product Description2',
+       'Product Features2', 'Stock on Hand2', 'RRP Ex GST2',
+       'Reseller Buy Ex GST2', 'Manufacturer2', 'Manufacturers Code2',
+       'Cateogory2', 'Sub Cateogory2', 'Image URL2', 'UPC Code2', 'Unnamed: 13 2'];
+	   
+seltec = pd.merge(df,daily_seltec,on='Product Code',how='outer',indicator=True) ; 
+
+seltec.drop(['Product Title2', 'Product Description2',
+       'Product Features2', 'Stock on Hand2', 'RRP Ex GST2',
+       'Reseller Buy Ex GST2', 'Manufacturer2', 'Manufacturers Code2',
+       'Cateogory2', 'Sub Cateogory2', 'Image URL2', 'UPC Code2', 'Unnamed: 13 2'], axis = 1, inplace = True);
+seltec.drop_duplicates(subset ="Product Code",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (seltec['_merge'] == 'right_only');
+#Creating DF for import to database
+newseltec = seltec[filt1]
+#Insert into table
+newseltec.to_sql('source_seltec', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#STREAKWAVE - 
+df = pd.read_sql("select * from dd.source_streakewave", dbConnection);
+daily_streakwave = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Streakwave_Pricelist.csv");
+daily_streakwave.drop_duplicates(subset ="product_code",
+                     keep = False, inplace = True);
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+
+df.columns = ['product_code', 'product_name2', 'price2', 'rrp2', 'stock_on_hand2',
+       'weight_kg2', 'barcode2', 'brand2'];  
+streakewave = pd.merge(df,daily_streakwave,on='product_code',how='outer',indicator=True) ; 
+
+streakewave.drop(['product_name2', 'price2', 'rrp2', 'stock_on_hand2',
+       'weight_kg2', 'barcode2', 'brand2'], axis = 1, inplace = True);
+streakewave.drop_duplicates(subset ="product_code",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (streakewave['_merge'] == 'right_only');
+#Creating DF for import to database
+newstreakewave = streakewave[filt1]
+#Insert into table
+newstreakewave.to_sql('source_streakewave', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SYNNEX - Reading from DB
+df = pd.read_sql("select * from dd.source_synnex", dbConnection);
+#Reading from CSV file for Update
+daily_synnex = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\OZZIESOL_synnex_au.txt", on_bad_lines='skip', delimiter = '\t');
+daily_synnex.drop_duplicates(subset ="SUPPLIER_PART_NUMBER",
+                     keep = False, inplace = True);
+#Trim DF from DB for merging
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+#Renaming DB DF header for merging
+df.columns = ['SUPPLIER_PART_NUMBER', 'MANUFACTURER_NAME2', 'MANUFACTURER_PART_NUMBER2',
+       'SHORT_DESCRIPTION2', 'LONG_DESCRIPTION2', 'NOTES_COMMENTS2',
+       'CATEGORY_OF_PRODUCT_1 2', 'CATEGORY_OF_PRODUCT_2 2',
+       'CATEGORY_OF_PRODUCT_3 2', 'RESELLER_BUY_EX2', 'RRP_EX2', 'GOV_BUY_EX2',
+       'GOV_RETAIL_EX2', 'RESELLER_BUY_INC2', 'RRP_INC2', 'GOV_BUY_INC2',
+       'GOV_RETAIL_INC2', 'SERIALIZED2', 'AVAILABILITY_M2', 'AVAILABILITY_S2',
+       'EOR_MARKER2', 'WEIGHT2', 'HEIGHT2', 'WIDTH2', 'LENGTH2',
+       'TOTAL_AVAILABILITY2', 'EAN2', 'UPC2', 'APN2', 'G_Code2', 'MOQ2'];
+#Merging two files	   
+synnex = pd.merge(df,daily_synnex,on='SUPPLIER_PART_NUMBER',how='outer',indicator=True) ; 
+#Drop unneccessaries columns after merging EXCEPT FIRST COLUMN
+synnex.drop(['MANUFACTURER_NAME2', 'MANUFACTURER_PART_NUMBER2',
+       'SHORT_DESCRIPTION2', 'LONG_DESCRIPTION2', 'NOTES_COMMENTS2',
+       'CATEGORY_OF_PRODUCT_1 2', 'CATEGORY_OF_PRODUCT_2 2',
+       'CATEGORY_OF_PRODUCT_3 2', 'RESELLER_BUY_EX2', 'RRP_EX2', 'GOV_BUY_EX2',
+       'GOV_RETAIL_EX2', 'RESELLER_BUY_INC2', 'RRP_INC2', 'GOV_BUY_INC2',
+       'GOV_RETAIL_INC2', 'SERIALIZED2', 'AVAILABILITY_M2', 'AVAILABILITY_S2',
+       'EOR_MARKER2', 'WEIGHT2', 'HEIGHT2', 'WIDTH2', 'LENGTH2',
+       'TOTAL_AVAILABILITY2', 'EAN2', 'UPC2', 'APN2', 'G_Code2', 'MOQ2'], axis = 1, inplace = True);
+streakewave.drop_duplicates(subset ="SUPPLIER_PART_NUMBER",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (synnex['_merge'] == 'right_only');
+#Creating DF for import to database
+newsynnex = synnex[filt1]
+#Insert into table
+newsynnex.to_sql('source_synnex', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DeviceDeal - Reading from DB
+df = pd.read_sql("select * from dd.devicedeal_raw", dbConnection);
+#Reading from CSV file for Update
+daily_devicedeal_raw = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Devicedeal Raw.csv");
+daily_devicedeal_raw.drop_duplicates(subset ="SKU",
+                     keep = False, inplace = True);
+df.drop(['id','index','_merge'], axis = 1, inplace = True);
+
+df.columns = ['SKU', 'Active2', 'Custom Label/Code2', 'Brand2', 'Name2', 'Top Seller2',
+       'Qty In Stock (Primary Warehouse)2',
+       'Qty In Stock (Secondary Warehouse)2',
+       'Qty In Stock (Bluechip Warehouse)2', 'Qty In Stock (Dicker Data Stock)2',
+       'Qty In Stock (Ingram Stock)2', 'Qty In Stock (Synnex Stock)2',
+       'Qty In Stock (MMT Warehouse)2', 'Qty In Stock (Leader Stock)2',
+       'Qty In Stock (Alloys Stock)2', 'Qty In Stock (Alloy Stock)2',
+       'Qty In Stock (Seltec Stock)2', 'Qty In Stock (Sektor Stock)2',
+       'Price (A)2', 'Price (B)2', 'Price (C)2', 'Price (D)2', 'Price (E)2',
+       'Price (F)2', 'Managed Products2', 'Prime Supplier2', 'Secondary Supplier2',
+       'The Other Suppliers2', 'DD Master SKU2', 'Bluechip M.SKU2',
+       'Dickerdata M.SKU2', 'Ingram M.SKU2', 'Synnex M.SKU2', 'MMT M.SKU2',
+       'Leader M.SKU2', 'Alloys M.SKU2', 'Alloy M.SKU2', 'Seltec M.SKU2',
+       'Sektor M.SKU2', 'Margin Rate2', 'Product Category Full Path List2'];  
+devicedeal_raw = pd.merge(df,daily_devicedeal_raw,on='SKU',how='outer',indicator=True) ; 
+
+devicedeal_raw.drop(['Active2', 'Custom Label/Code2', 'Brand2', 'Name2', 'Top Seller2',
+       'Qty In Stock (Primary Warehouse)2',
+       'Qty In Stock (Secondary Warehouse)2',
+       'Qty In Stock (Bluechip Warehouse)2', 'Qty In Stock (Dicker Data Stock)2',
+       'Qty In Stock (Ingram Stock)2', 'Qty In Stock (Synnex Stock)2',
+       'Qty In Stock (MMT Warehouse)2', 'Qty In Stock (Leader Stock)2',
+       'Qty In Stock (Alloys Stock)2', 'Qty In Stock (Alloy Stock)2',
+       'Qty In Stock (Seltec Stock)2', 'Qty In Stock (Sektor Stock)2',
+       'Price (A)2', 'Price (B)2', 'Price (C)2', 'Price (D)2', 'Price (E)2',
+       'Price (F)2', 'Managed Products2', 'Prime Supplier2', 'Secondary Supplier2',
+       'The Other Suppliers2', 'DD Master SKU2', 'Bluechip M.SKU2',
+       'Dickerdata M.SKU2', 'Ingram M.SKU2', 'Synnex M.SKU2', 'MMT M.SKU2',
+       'Leader M.SKU2', 'Alloys M.SKU2', 'Alloy M.SKU2', 'Seltec M.SKU2',
+       'Sektor M.SKU2', 'Margin Rate2', 'Product Category Full Path List2'], axis = 1, inplace = True);
+df.drop_duplicates(subset ="SKU",
+                     keep = False, inplace = True)
+#Creating filter for importing
+filt1 = (devicedeal_raw['_merge'] == 'right_only');
+#Creating DF for import to database
+newdevicedeal_raw = devicedeal_raw[filt1]
+#Insert into table
+newdevicedeal_raw.to_sql('devicedeal_raw', con = sqlEngine, if_exists = 'append', chunksize = 1000);

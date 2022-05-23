@@ -1,0 +1,180 @@
+#Inserting daily file to MYSQL
+import mysql.connector
+
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="dd"
+)
+
+mycursor = mydb.cursor()
+
+sql1 = "DELETE FROM daily_alloy"
+sql2 = "DELETE FROM daily_alloys"
+sql3 = "DELETE FROM daily_bluechip"
+sql4 = "DELETE FROM daily_dicker"
+sql5 = "DELETE FROM daily_dynamic"
+sql6 = "DELETE FROM daily_ingram"
+sql7 = "DELETE FROM daily_leader"
+sql8 = "DELETE FROM daily_mmt"
+sql9 = "DELETE FROM daily_sektor"
+sql10 = "DELETE FROM daily_seltec"
+sql11 = "DELETE FROM daily_streakwave"
+sql12 = "DELETE FROM daily_synnex"
+
+mycursor.execute(sql1)
+mycursor.execute(sql2)
+mycursor.execute(sql3)
+mycursor.execute(sql4)
+mycursor.execute(sql5)
+mycursor.execute(sql6)
+mycursor.execute(sql7)
+mycursor.execute(sql8)
+mycursor.execute(sql9)
+mycursor.execute(sql10)
+mycursor.execute(sql11)
+mycursor.execute(sql12)
+
+mydb.commit()
+
+from sqlalchemy import create_engine
+import pandas as pd
+import pymysql
+sqlEngine = create_engine('mysql+pymysql://root:@127.0.0.1/dd', pool_recycle=3600)
+dbConnection = sqlEngine.connect()
+
+#ALLOY -
+
+#reading from daily file and remove duplicates
+daily_alloy = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Alloy_Stocklist.csv");
+daily_alloy.drop_duplicates(subset =["Code"],
+                     keep = False, inplace = True);
+#Import daily file to table	   
+daily_alloy.to_sql('daily_alloy', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#ALLOYS - 
+
+#reading from daily file and remove duplicates
+daily_alloys = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\pricelist.csv");
+daily_alloys.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#Import daily file to table
+daily_alloys.to_sql('daily_alloys', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#BLUECHIP - 
+
+#Reading from CSV file for Update
+daily_bluechip = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Bluechip.csv");
+daily_bluechip.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#Import daily file to table	
+daily_bluechip.to_sql('daily_bluechip', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DYNAMIC - 
+
+#Reading from TXT file for Update and putting header on it
+daily_dynamic = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\DEVICE2.txt", delimiter = ',');
+daily_dynamic.columns = ['Dynamic Supplies Code', 'Description', 'Dealer Price Ex GST',
+	'Manufacturer Name', 'Product Category description', 'Product Weight (kg)','Manufacturer OEM Code',
+	'Printer Compatibility', 'Cartridge Yield','Cartridge Type','m3 (L x W x H) - Not cubic weight',
+	'Regionalisation Code', 'Length (m)', 'Width (m)', 'Height (m)', 'SOH Brisbane', 'SOH Melbourne','SOH Perth',
+	'SOH Adelaide','SOH Sydney','GTIN Barcode','RRP Inc GST'];
+daily_dynamic.drop_duplicates(subset ="Dynamic Supplies Code",
+                     keep = False, inplace = True);
+#Import daily file to table	
+daily_dynamic.to_sql('daily_dynamic', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DICKER - 
+
+#Reading from CSV file for Update
+daily_dicker = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\DickerDataDataFeedCSV.csv");
+daily_dicker.drop_duplicates(subset ="StockCode",
+                     keep = False, inplace = True);
+#Import daily file to table	
+daily_dicker.to_sql('daily_dicker', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#LEADER - 
+
+#Reading from CSV file for Update
+daily_leader = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Leader.csv");
+daily_leader.drop_duplicates(subset ="STOCK CODE",
+                     keep = False, inplace = True);
+#Import daily file to table	
+daily_leader.to_sql('daily_leader', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#MMT - 
+
+#reading from daily file and remove duplicates
+daily_mmt = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\MMT.csv", encoding= 'unicode_escape');
+daily_mmt.drop_duplicates(subset ="MMT Code",
+                     keep = False, inplace = True);
+#Import daily file to table	   
+daily_mmt.to_sql('daily_mmt', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#INGRAM - 
+
+#Reading from daily or update file
+daily_ingram = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\233866.TXT", delimiter = ',');
+daily_ingram.drop_duplicates(subset ="Ingram Part Number",
+                     keep = False, inplace = True);
+#Removing unnecessary columns from update file(IF available)
+daily_ingram.drop(['Customer Part Number','Plant', 'Vendor Number','Unit', 'Category ID','Availability Flag',
+            'Backlog Information','License Flag', 'BOM Flag', 'Warranty Flag', 'Bulk Freight Flag',
+            'Category','Material Creation Reason code', 'Media Code', 'Material Language Code','Superseded Material',
+           'Manufacturer Vendor Number', 'Sub-Category', 'Product Family',
+       'Purchasing Vendor', 'Material Change Code', 'Action code',
+       'Price Status', 'Vendor Subrange', 'Case Qty',
+       'Pallet Qty', 'Direct Order identifier', 'Material Status', 'Fulfilment type',
+       'Music Copyright Fees', 'Recycling Fees', 'Document Copyright Fees',
+       'Battery Fees', 'Tax Percent', 'Discount in Percent', 'Customer Reservation Number',
+       'Customer Reservation Qty', 'Agreement ID', 'Level ID', 'Period',
+       'Points', 'Company code', 'Company code Currency',
+       'Customer Currency Code', 'Customer Price Change Flag',
+       'Substitute Flag', 'Availability (Local Stock)',
+       'Availability (Central Stock)', 'Creation Reason Type',
+       'Creation Reason Value', 'Plant 01 Available Quantity',
+       'Plant 02 Available Quantity', 'VAT Rate', 'Product Group',
+       'MRP Controller', 'Shipping Country', 'Local Stock Backlog Quantity',
+       'Local Stock Backlog ETA', 'Central Stock Backlog Quantity',
+       'Central Stock Backlog ETA'], axis = 1, inplace = True);
+#Import daily file to table	   
+daily_ingram.to_sql('daily_ingram', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SEKTOR - 
+
+#Reading from daily or update file
+daily_sektor = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\PRODFEED_STANDARD_14833.csv");
+daily_sektor.drop_duplicates(subset ="Vendor Code",
+                     keep = False, inplace = True);
+#Import daily file to table	  
+daily_sektor.to_sql('daily_sektor', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SELTEC - 
+
+#Reading from daily or update file
+daily_seltec = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Seltec Data Feed.csv");
+daily_seltec.drop_duplicates(subset ="Product Code",
+                     keep = False, inplace = True);
+#Import daily file to table	  
+daily_seltec.to_sql('daily_seltec', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#STREAKWAVE - 
+
+#Reading from daily or update file
+daily_streakwave = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Streakwave_Pricelist.csv");
+daily_streakwave.drop_duplicates(subset ="product_code",
+                     keep = False, inplace = True);
+#Import daily file to table	  
+daily_streakwave.to_sql('daily_streakwave', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SYNNEX - 
+
+#Reading from CSV file for Update
+daily_synnex = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\OZZIESOL_synnex_au.txt", on_bad_lines='skip', delimiter = '\t');
+daily_synnex.drop_duplicates(subset ="SUPPLIER_PART_NUMBER",
+                     keep = False, inplace = True);
+#Import daily file to table	  
+daily_synnex.to_sql('daily_synnex', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+

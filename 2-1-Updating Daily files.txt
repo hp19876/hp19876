@@ -1,0 +1,306 @@
+#Inserting daily file to MYSQL
+import mysql.connector
+
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="dd"
+)
+
+mycursor = mydb.cursor()
+
+sql1 = "DELETE FROM daily_alloy"
+sql2 = "DELETE FROM daily_alloys"
+sql3 = "DELETE FROM daily_bluechip"
+sql4 = "DELETE FROM daily_dicker"
+sql5 = "DELETE FROM daily_dynamic"
+sql6 = "DELETE FROM daily_ingram"
+sql7 = "DELETE FROM daily_leader"
+sql8 = "DELETE FROM daily_mmt"
+sql9 = "DELETE FROM daily_sektor"
+sql10 = "DELETE FROM daily_seltec"
+sql11 = "DELETE FROM daily_streakwave"
+sql12 = "DELETE FROM daily_synnex"
+
+mycursor.execute(sql1)
+mycursor.execute(sql2)
+mycursor.execute(sql3)
+mycursor.execute(sql4)
+mycursor.execute(sql5)
+mycursor.execute(sql6)
+mycursor.execute(sql7)
+mycursor.execute(sql8)
+mycursor.execute(sql9)
+mycursor.execute(sql10)
+mycursor.execute(sql11)
+mycursor.execute(sql12)
+
+mydb.commit()
+
+from sqlalchemy import create_engine
+import pandas as pd
+import pymysql
+sqlEngine = create_engine('mysql+pymysql://root:@127.0.0.1/dd', pool_recycle=3600)
+dbConnection = sqlEngine.connect()
+
+#ALLOY - reading from DB
+df = pd.read_sql("select * from dd.source_alloy", dbConnection);
+#reading from daily file and remove duplicates
+daily_alloy = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Alloy_Stocklist.csv");
+daily_alloy.drop_duplicates(subset =["Code"],
+                     keep = False, inplace = True);
+#setting new index and join them					 
+daily_alloy = daily_alloy.set_index('Code').join(df.set_index('Code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_alloy.drop(['index', 'Summary_other', 'Description_other',
+       'Category_other', 'Vendor_other', 'DLR_other', 'SRP_other', 'EOL_other',
+       'Stock_other', 'Warranty_other', 'Vkg_other', 'Weight_other',
+       'Length_other', 'Width_other', 'Height_other', 'Image_other',
+       'Webpage_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	   
+daily_alloy.to_sql('daily_alloy', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#ALLOYS - Reading from DB
+df = pd.read_sql("select * from dd.source_alloys", dbConnection);
+#reading from daily file and remove duplicates
+daily_alloys = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\pricelist.csv");
+daily_alloys.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_alloys = daily_alloys.set_index('PartNumber').join(df.set_index('PartNumber'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_alloys.drop(['index', 'Name_other', 'ManufacPrefix_other',
+       'Manufacturer_other', 'Category_other', 'CategoryName_other',
+       'Group_other', 'Unit_other', 'PriceCostEx_other', 'PriceRetailEx_other',
+       'TaxType_other', 'TaxRate_other', 'Quantity_other',
+       'SupplierPartNumber_other', 'Description_other',
+       'HTMLDescription_other', 'EAN_other', 'Weight_other', 'Height_other',
+       'Width_other', 'Depth_other', 'FeaturesBenefits_other',
+       'MarketingComments_other', 'GeneralComments_other',
+       'ProductSpecificURL_other', 'Warranty_other', 'image_thumbnail_other',
+       'PDF_Available_other', 'StockRecordUpdated_other', 'ETADate_other',
+       'ETAStatus_other', 'Qty_ADL_other', 'Qty_BNE_other', 'Qty_MEL_other',
+       'Qty_SYD_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table
+daily_alloys.to_sql('daily_alloys', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#BLUECHIP - Reading from DB
+df = pd.read_sql("select * from dd.source_bluechip", dbConnection);
+#Reading from CSV file for Update
+daily_bluechip = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Bluechip.csv");
+daily_bluechip.drop_duplicates(subset ="PartNumber",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_bluechip = daily_bluechip.set_index('PartNumber').join(df.set_index('PartNumber'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_bluechip.drop(['index',
+       'Description_other', 'Details_other', 'Unit_other', 'Cost_EX_GST_other',
+       'GST_Rate_other', 'Qty_other', 'Introduced_other', 'Clearance_other',
+       'Manufacturer_other', 'Category_other', 'Group_other',
+       'SupplierPartNumber_other', 'NSW_Qty_other', 'VIC_Qty_other',
+       'QLD_Qty_other', 'SA_Qty_other', 'WA_Qty_other', 'Weight_other',
+       'Volume_other', 'Product_Image_other', 'RRP_Ex_GST_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	
+daily_bluechip.to_sql('daily_bluechip', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DYNAMIC - Reading from DB
+df = pd.read_sql("select * from dd.source_dynamic", dbConnection)
+#Reading from TXT file for Update and putting header on it
+daily_dynamic = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\DEVICE2.txt", delimiter = ',');
+daily_dynamic.columns = ['Dynamic Supplies Code', 'Description', 'Dealer Price Ex GST',
+	'Manufacturer Name', 'Product Category description', 'Product Weight (kg)','Manufacturer OEM Code',
+	'Printer Compatibility', 'Cartridge Yield','Cartridge Type','m3 (L x W x H) - Not cubic weight',
+	'Regionalisation Code', 'Length (m)', 'Width (m)', 'Height (m)', 'SOH Brisbane', 'SOH Melbourne','SOH Perth',
+	'SOH Adelaide','SOH Sydney','GTIN Barcode','RRP Inc GST'];
+daily_dynamic.drop_duplicates(subset ="Dynamic Supplies Code",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_dynamic = daily_dynamic.set_index('Dynamic Supplies Code').join(df.set_index('Dynamic Supplies Code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_dynamic.drop(['index',
+       'Description_other', 'Dealer Price Ex GST_other',
+       'Manufacturer Name_other', 'Product Category description_other',
+       'Product Weight (kg)_other', 'Manufacturer OEM Code_other',
+       'Printer Compatibility_other', 'Cartridge Yield_other',
+       'Cartridge Type_other', 'm3 (L x W x H) - Not cubic weight_other',
+       'Regionalisation Code_other', 'Length (m)_other', 'Width (m)_other',
+       'Height (m)_other', 'SOH Brisbane_other', 'SOH Melbourne_other',
+       'SOH Perth_other', 'SOH Adelaide_other', 'SOH Sydney_other',
+       'GTIN Barcode_other', 'RRP Inc GST_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	
+daily_dynamic.to_sql('daily_dynamic', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#DICKER - Reading from DB
+df = pd.read_sql("select * from dd.source_dicker", dbConnection);
+#Reading from CSV file for Update
+daily_dicker = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\DickerDataDataFeedCSV.csv");
+daily_dicker.drop_duplicates(subset ="StockCode",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_dicker = daily_dicker.set_index('StockCode').join(df.set_index('StockCode'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_dicker.drop(['index',
+       'Vendor_other', 'VendorStockCode_other', 'StockDescription_other',
+       'PrimaryCategory_other', 'SecondaryCategory_other',
+       'TertiaryCategory_other', 'RRPEx_other', 'DealerEx_other',
+       'StockAvailable_other', 'ETA_other', 'Status_other', 'Type_other',
+       'BundledItem1_other', 'BundledItem2_other', 'BundledItem3_other',
+       'BundledItem4_other', 'BundledItem5_other', '_merge'],axis = 1, inplace = True);
+#Import daily file to table	
+daily_dicker.to_sql('daily_dicker', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#LEADER - Reading from DB
+df = pd.read_sql("select * from dd.source_leader", dbConnection);
+#Reading from CSV file for Update
+daily_leader = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Leader.csv");
+daily_leader.drop_duplicates(subset ="STOCK CODE",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_leader = daily_leader.set_index('STOCK CODE').join(df.set_index('STOCK CODE'), lsuffix='_caller', rsuffix='_other')
+daily_leader.drop(['index', 'CATEGORY CODE_other',
+       'CATEGORY NAME_other', 'SUBCATEGORY NAME_other',
+       'SHORT DESCRIPTION_other', 'BAR CODE_other', 'DBP_other', 'RRP_other',
+       'IMAGE_other', 'MANUFACTURER_other', 'MANUFACTURER SKU_other',
+       'WEIGHT_other', 'LENGTH_other', 'WIDTH_other', 'HEIGHT_other',
+       'WARRANTY_other', 'AT_other', 'AA_other', 'AQ_other', 'AN_other',
+       'AV_other', 'AW_other', 'ETAA_other', 'ETAQ_other', 'ETAN_other',
+       'ETAV_other', 'ETAW_other', 'ALTERNATIVE REPLACEMENTS_other',
+       'OPTIONAL ACCESSORIES_other', '_merge'],axis = 1, inplace = True);
+#Import daily file to table	
+daily_leader.to_sql('daily_leader', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#MMT - reading from DB
+df = pd.read_sql("select * from dd.source_mmt", dbConnection);
+#reading from daily file and remove duplicates
+daily_mmt = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\MMT.csv", encoding= 'unicode_escape');
+daily_mmt.drop_duplicates(subset ="MMT Code",
+                     keep = False, inplace = True);
+#setting new index and join them					 
+daily_mmt = daily_mmt.set_index('MMT Code').join(df.set_index('MMT Code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_mmt.drop(['index',
+       'Man.Code/SKU_other', 'Manufacturer_other', 'Category_other',
+       'Description_other', 'RRP Inc._other', 'Your Buy Ex. GST_other',
+       'Available (Qty)_other', 'Parent Category Name_other',
+       'Category Name_other', 'Extended Description_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	   
+daily_mmt.to_sql('daily_mmt', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#INGRAM - reading source from Database 
+df = pd.read_sql("select * from dd.source_ingram", dbConnection);
+#Reading from daily or update file
+daily_ingram = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\233866.TXT", delimiter = ',');
+daily_ingram.drop_duplicates(subset ="Ingram Part Number",
+                     keep = False, inplace = True);
+#Removing unnecessary columns from update file(IF available)
+daily_ingram.drop(['Customer Part Number','Plant', 'Vendor Number','Unit', 'Category ID','Availability Flag',
+            'Backlog Information','License Flag', 'BOM Flag', 'Warranty Flag', 'Bulk Freight Flag',
+            'Category','Material Creation Reason code', 'Media Code', 'Material Language Code','Superseded Material',
+           'Manufacturer Vendor Number', 'Sub-Category', 'Product Family',
+       'Purchasing Vendor', 'Material Change Code', 'Action code',
+       'Price Status', 'Vendor Subrange', 'Case Qty',
+       'Pallet Qty', 'Direct Order identifier', 'Material Status', 'Fulfilment type',
+       'Music Copyright Fees', 'Recycling Fees', 'Document Copyright Fees',
+       'Battery Fees', 'Tax Percent', 'Discount in Percent', 'Customer Reservation Number',
+       'Customer Reservation Qty', 'Agreement ID', 'Level ID', 'Period',
+       'Points', 'Company code', 'Company code Currency',
+       'Customer Currency Code', 'Customer Price Change Flag',
+       'Substitute Flag', 'Availability (Local Stock)',
+       'Availability (Central Stock)', 'Creation Reason Type',
+       'Creation Reason Value', 'Plant 01 Available Quantity',
+       'Plant 02 Available Quantity', 'VAT Rate', 'Product Group',
+       'MRP Controller', 'Shipping Country', 'Local Stock Backlog Quantity',
+       'Local Stock Backlog ETA', 'Central Stock Backlog Quantity',
+       'Central Stock Backlog ETA'], axis = 1, inplace = True);
+#setting new index and join them					 
+daily_ingram = daily_ingram.set_index('Ingram Part Number').join(df.set_index('Ingram Part Number'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_ingram.drop(['index',
+       'Ingram Part Description_other', 'Vendor Part Number_other',
+       'EANUPC Code_other', 'Vendor Name_other', 'Size_other', 'Weight_other',
+       'Volume_other', 'Customer Price_other', 'Retail Price_other',
+       'Available Quantity_other', 'Backlog ETA_other',
+       'Material Long Description_other', 'Length_other', 'Width_other',
+       'Height_other', 'Dimension Unit_other', 'Weight Unit_other',
+       'Volume Unit_other', 'Substitute Material_other',
+       'New Material Flag_other', 'Discontinued / Obsoleted date_other',
+       'Release Date_other', 'Customer Price with Tax_other',
+       'Retail Price with Tax_other', 'Customer Price Including Fees_other',
+       'Total Fees_other', 'Category Description_other',
+       'Sub-Category Description_other', 'Category ID Description_other',
+       '_merge'], axis = 1, inplace = True);
+#Import daily file to table	   
+daily_ingram.to_sql('daily_ingram', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SEKTOR - reading source from Database 
+df = pd.read_sql("select * from dd.source_sektor", dbConnection);
+#Reading from daily or update file
+daily_sektor = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\PRODFEED_STANDARD_14833.csv");
+daily_sektor.drop_duplicates(subset ="Vendor Code",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_sektor = daily_sektor.set_index('Vendor Code').join(df.set_index('Vendor Code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_sektor.drop(['index', 'Stockcode_other',
+       'Description_other', 'Buy_other', 'Stock Level_other', 'Brand_other',
+       'Core Product_other', 'Minimum Order Qty_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	  
+daily_sektor.to_sql('daily_sektor', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SELTEC - reading source from Database 
+df = pd.read_sql("select * from dd.source_seltec", dbConnection);
+#Reading from daily or update file
+daily_seltec = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Seltec Data Feed.csv");
+daily_seltec.drop_duplicates(subset ="Product Code",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_seltec = daily_seltec.set_index('Product Code').join(df.set_index('Product Code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_seltec.drop(['index', 'Product Title_other', 'Product Description_other',
+       'Product Features_other', 'Stock on Hand_other', 'RRP Ex GST_other',
+       'Reseller Buy Ex GST_other', 'Manufacturer_other',
+       'Manufacturers Code_other', 'Cateogory_other', 'Sub Cateogory_other',
+       'Image URL_other', 'UPC Code_other', 'Unnamed: 13_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	  
+daily_seltec.to_sql('daily_seltec', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#STREAKWAVE - reading source from Database 
+df = pd.read_sql("select * from dd.source_streakewave", dbConnection);
+#Reading from daily or update file
+daily_streakwave = pd.read_csv(r"C:\Users\DeaTh\Downloads\Daily Supplier\Streakwave_Pricelist.csv");
+daily_streakwave.drop_duplicates(subset ="product_code",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_streakwave = daily_streakwave.set_index('product_code').join(df.set_index('product_code'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_streakwave.drop(['index', 'product_name_other', 'price_other',
+       'rrp_other', 'stock_on_hand_other', 'weight_kg_other', 'barcode_other',
+       'brand_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	  
+daily_streakwave.to_sql('daily_streakwave', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+#SYNNEX - Reading from DB
+df = pd.read_sql("select * from dd.source_synnex", dbConnection);
+#Reading from CSV file for Update
+daily_synnex = pd.read_table(r"C:\Users\DeaTh\Downloads\Daily Supplier\OZZIESOL_synnex_au.txt", on_bad_lines='skip', delimiter = '\t');
+daily_synnex.drop_duplicates(subset ="SUPPLIER_PART_NUMBER",
+                     keep = False, inplace = True);
+#setting new index and join them
+daily_synnex = daily_synnex.set_index('SUPPLIER_PART_NUMBER').join(df.set_index('SUPPLIER_PART_NUMBER'), lsuffix='_caller', rsuffix='_other')
+#drop unused column after join
+daily_synnex.drop(['index', 'MANUFACTURER_NAME_other',
+       'MANUFACTURER_PART_NUMBER_other', 'SHORT_DESCRIPTION_other',
+       'LONG_DESCRIPTION_other', 'NOTES_COMMENTS_other',
+       'CATEGORY_OF_PRODUCT_1_other', 'CATEGORY_OF_PRODUCT_2_other',
+       'CATEGORY_OF_PRODUCT_3_other', 'RESELLER_BUY_EX_other', 'RRP_EX_other',
+       'GOV_BUY_EX_other', 'GOV_RETAIL_EX_other', 'RESELLER_BUY_INC_other',
+       'RRP_INC_other', 'GOV_BUY_INC_other', 'GOV_RETAIL_INC_other',
+       'SERIALIZED_other', 'AVAILABILITY_M_other', 'AVAILABILITY_S_other',
+       'EOR_MARKER_other', 'WEIGHT_other', 'HEIGHT_other', 'WIDTH_other',
+       'LENGTH_other', 'TOTAL_AVAILABILITY_other', 'EAN_other', 'UPC_other',
+       'APN_other', 'G_Code_other', 'MOQ_other', '_merge'], axis = 1, inplace = True);
+#Import daily file to table	  
+daily_synnex.to_sql('daily_synnex', con = sqlEngine, if_exists = 'append', chunksize = 1000);
+
+

@@ -1,0 +1,82 @@
+from sqlalchemy import create_engine
+import pandas as pd
+import pymysql
+sqlEngine = create_engine('mysql+pymysql://root:@127.0.0.1/dd', pool_recycle=3600)
+dbConnection = sqlEngine.connect()
+
+#ALLOY - Reading source from  DB
+alloy = pd.read_sql("SELECT  Code from dd.source_alloy", dbConnection);
+#Renaming headers
+alloy.columns = ['device_name']
+
+#ALLOYS - Reading source from  DB
+alloys = pd.read_sql("SELECT  source_alloys.SupplierPartNumber from source_alloys", dbConnection);
+#Renaming headers
+alloys.columns = ['device_name']
+
+#BLUECHIP - Reading source from  DB
+bluechip = pd.read_sql("SELECT  source_bluechip.SupplierPartNumber from source_bluechip", dbConnection);
+#Renaming headers
+bluechip.columns = ['device_name']
+
+#DICKER - Reading source from  DB
+dicker = pd.read_sql("SELECT  source_dicker.VendorStockCode from source_dicker", dbConnection);
+#Renaming headers
+dicker.columns = ['device_name']
+
+#DYNAMIC - Reading source from  DB
+dynamic = pd.read_sql("SELECT  source_dynamic.`Manufacturer OEM Code` from source_dynamic", dbConnection);
+#Renaming headers
+dynamic.columns = ['device_name']
+
+#INGRAM - Reading source from  DB
+ingram = pd.read_sql("SELECT  source_ingram.`Vendor Part Number` from source_ingram", dbConnection);
+#Renaming headers
+ingram.columns = ['device_name'];
+#converting ingram part number to object
+ingram.device_name = ingram.device_name.astype('object')
+
+#LEADER - Reading source from  DB
+leader = pd.read_sql("SELECT  `MANUFACTURER SKU` from source_leader", dbConnection);
+#Renaming headers
+leader.columns = ['device_name']
+
+#MMT - Reading source from  DB
+mmt = pd.read_sql("SELECT  source_mmt.`Man.Code/SKU` from source_mmt", dbConnection);
+#Renaming headers
+mmt.columns = ['device_name']
+
+#SEKTOR - Reading source from  DB
+sektor = pd.read_sql("SELECT  source_sektor.`Vendor Code` from source_sektor", dbConnection);
+#Renaming headers
+sektor.columns = ['device_name']
+
+#SELTEC - Reading source from  DB
+seltec = pd.read_sql("SELECT  source_seltec.`Manufacturers Code` from source_seltec", dbConnection);
+#Renaming headers
+seltec.columns = ['device_name']
+
+#STREAKWAVE - Reading source from  DB
+streakewave = pd.read_sql("SELECT  source_streakewave.product_code from source_streakewave", dbConnection);
+#Renaming headers
+streakewave.columns = ['device_name']
+
+#SYNNEX - Reading source from  DB
+synnex = pd.read_sql("SELECT  source_synnex.MANUFACTURER_PART_NUMBER from source_synnex", dbConnection);
+#Renaming headers
+synnex.columns = ['device_name']
+
+#DEVICES TABLE - Reading source from  DB
+devices = pd.read_sql("SELECT devices.device_name FROM devices", dbConnection);
+#Renaming headers
+devices.columns = ['device_name']
+
+
+# Concatenating dataframes without duplicates
+new_dataframe = pd.concat([alloy, alloys, bluechip, dicker, dynamic, ingram,leader, mmt, sektor, seltec, streakewave, synnex, devices ]).drop_duplicates(keep=False)
+new_dataframe = new_dataframe[['device_name']]
+
+
+
+#IMPORT DATAFRAME INTO DB (DEVICES)
+new_dataframe.to_sql('devices', con = sqlEngine, if_exists = 'append', chunksize = 1000);
